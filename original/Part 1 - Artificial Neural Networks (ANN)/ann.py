@@ -78,11 +78,11 @@ classifier = Sequential()
 
 # Añadir las capas de entrada y primera capa oculta
 classifier.add(Dense(units = 6, kernel_initializer = "uniform",  activation = "relu", input_dim = 11))
-classifier.add(Dropout(p = 0.1))
+classifier.add(Dropout(rate = 0.1))
 
 # Añadir la segunda capa oculta
 classifier.add(Dense(units = 6, kernel_initializer = "uniform",  activation = "relu"))
-classifier.add(Dropout(p = 0.1))
+classifier.add(Dropout(rate = 0.1))
 
 # Añadir la capa de salida
 classifier.add(Dense(units = 1, kernel_initializer = "uniform",  activation = "sigmoid"))
@@ -108,7 +108,7 @@ print((cm[0][0]+cm[1][1])/cm.sum())
 ## Parte 4 - Evaluar, mejorar y Ajustar la RNA
 
 ### Evaluar la **RNA**
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 
 def build_classifier():
@@ -120,7 +120,7 @@ def build_classifier():
   return classifier
 
 classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, nb_epoch = 100)
-accuracies = cross_val_score(estimator=classifier, X = X_train, y = y_train, cv = 10, n_jobs=-1, verbose = 1)
+accuracies = cross_val_score(estimator=classifier, X = X_train, y = y_train, cv = 10, n_jobs=1, verbose = 1)
 
 mean = accuracies.mean()
 variance = accuracies.std()
