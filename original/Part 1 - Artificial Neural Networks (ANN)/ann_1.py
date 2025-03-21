@@ -3,20 +3,18 @@
 """
 Created on Sun Apr 28 10:38:56 2019
 
-@author: juangabriel
+@author: karla
 """
 
 #************************************************
 #Pre procesado de datos
 #************************************************
 
-
-
-
 # Cómo importar las librerías
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+
 
 # Importar el data set
 dataset = pd.read_csv('Churn_Modelling.csv')
@@ -65,8 +63,6 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
 
-
-
 # Escalado de variables
 from sklearn.preprocessing import StandardScaler
 sc_X = StandardScaler()
@@ -80,10 +76,11 @@ X_test = sc_X.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 
 #************************************************
 #Inicializar Red Neuronal
-#clasificador
+#Clasificador
 #************************************************
 
 classifier = Sequential()
@@ -93,18 +90,20 @@ classifier = Sequential()
 #************************************************
 
 #Añadir capa de entrada, y la primer capa oculta
-classifier.add(Dense(units=6, kernel_initializer= "uniform", activation='relu', input_dim=X_train.shape[1]))
+classifier.add(Dense(units=12, kernel_initializer= "uniform", activation='relu', input_dim=X_train.shape[1]))
+#classifier.add(Dropout(rate=0.1))
 #segunda capa oculta
 classifier.add(Dense(units=6, kernel_initializer= "uniform", activation='relu'))
+#classifier.add(Dropout(rate=0.1))
 #ultima capa oculta
 classifier.add(Dense(units=1, kernel_initializer= "uniform", activation='sigmoid'))
-
+#classifier.add(Dropout(rate=0.1))
 
 #************************************************
 #Compilar RNA
 #************************************************
-epocas = 20
-classifier.compile(optimizer='adam', loss="binary_crossentropy", metrics="accuracy" )
+epocas = 500
+classifier.compile(optimizer='rmsprop', loss="binary_crossentropy", metrics=["accuracy"] )
 classifier
 
 #************************************************
@@ -117,7 +116,7 @@ y_pred  = classifier.predict(X_test)
 #************************************************
 #Gráficar Accuracy y perdida de las epocas
 #************************************************
-history = classifier.fit(X_train, y_train, batch_size=(10), epochs=epocas)
+history = classifier.fit(X_train, y_train, batch_size=(25), epochs=epocas)
 perdida, precision = classifier.evaluate(X_test)
 print("PERDIDA: ", perdida)
 print("PRESICIÓN: ", precision)
@@ -152,7 +151,6 @@ plt.show()
 
 #************************************************
 # Predicción de nuevos datos
-
 #************************************************
 
 
@@ -183,3 +181,58 @@ print("Predicción:", y_pred_new)
 
 y_pred_new = (y_pred_new > 0.5)
 print("Predicción:", y_pred_new)
+
+#************************************************
+# Evaluación de RNA
+#************************************************
+
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+
+
+#************************************************
+# Función para crear la RNA
+#************************************************
+def build_classifier(optimizer):
+  classifier = Sequential()
+  classifier.add(Dense(units = 12, kernel_initializer = "uniform", activation = "relu", input_dim = 11))
+  classifier.add(Dropout(rate=0.1))
+  classifier.add(Dense(units = 6, kernel_initializer = "uniform", activation = "relu"))
+  classifier.add(Dropout(rate=0.1))
+  classifier.add(Dense(units = 1, kernel_initializer = "uniform", activation = "sigmoid"))
+  classifier.add(Dropout(rate=0.1))
+  classifier.compile(optimizer = optimizer, loss = "binary_crossentropy", metrics = ["accuracy"])
+  return classifier
+
+classifier = KerasClassifier(build_fn = build_classifier, batch_size = 25, nb_epoch = epocas)
+accuracies = cross_val_score(estimator=classifier, X = X_train, y = y_train, cv = 10, n_jobs=1, verbose = 1)
+
+print(accuracies)
+
+mean = accuracies.mean()
+variance = accuracies.std()
+
+print(mean)
+print(variance)
+
+#************************************************
+# Ajustar la RNA
+#************************************************
+from sklearn.model_selection import GridSearchCV # sklearn.grid_search
+
+classifier = KerasClassifier(build_fn=build_classifier)
+
+parameters = {
+    'batch_size' : [25,32],
+    'nb_epoch' : [100, 500], 
+    'optimizer' : ['adam', 'rmsprop']
+}
+
+
+grid_search = GridSearchCV(estimator = classifier, 
+                           param_grid = parameters, 
+                           scoring = 'accuracy', 
+                           cv = 10)
+grid_search = grid_search.fit(X_train, y_train)
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
