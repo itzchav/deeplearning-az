@@ -103,7 +103,7 @@ classifier.add(Dense(units=1, kernel_initializer= "uniform", activation='sigmoid
 #************************************************
 #Compilar RNA
 #************************************************
-epocas = 10
+epocas = 20
 classifier.compile(optimizer='adam', loss="binary_crossentropy", metrics="accuracy" )
 classifier
 
@@ -150,3 +150,36 @@ plt.legend(loc='lower right')
 plt.show()
 
 
+#************************************************
+# Predicción de nuevos datos
+
+#************************************************
+
+
+X_predict = [600, 'Spain', 'Male', 40, 3, 60000, 2, 1, 1, 50000]
+
+# Convertir X_predict a DataFrame
+df_predict = pd.DataFrame([X_predict], columns=['CustomerId', 'Geography', 'Gender', 'Age', 'Tenure', 
+                   
+                                                'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary'])
+# Seleccionar las características de X_predict (eliminar la columna 'CustomerId' ya que no es relevante para la predicción)
+X_predict = df_predict.iloc[:, :].values  # Esto incluye todas las columnas excepto 'CustomerId'
+
+X_predict[:, 1] = labelencoder_X_1.fit_transform(X_predict[:, 1])
+X_predict[:, 2] = labelencoder_X_2.fit_transform(X_predict[:, 2])
+
+
+# Aplicar la transformación de OneHotEncoder para 'Geography' y 'Gender' (esto asegura que los datos tengan la misma forma que X_train)
+X_predict = transformer.transform(X_predict)
+X_predict = X_predict[:, 1:]
+# No eliminamos ninguna columna adicional ya que 'transformer' se encargará de eso
+
+# Escalar las características numéricas
+X_predict = sc_X.transform(X_predict)
+
+# Realizar la predicción
+y_pred_new = classifier.predict(X_predict)
+print("Predicción:", y_pred_new)
+
+y_pred_new = (y_pred_new > 0.5)
+print("Predicción:", y_pred_new)
