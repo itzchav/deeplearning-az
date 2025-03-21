@@ -103,7 +103,7 @@ classifier.add(Dense(units=1, kernel_initializer= "uniform", activation='sigmoid
 #************************************************
 #Compilar RNA
 #************************************************
-epocas = 2
+epocas = 10
 classifier.compile(optimizer='adam', loss="binary_crossentropy", metrics="accuracy" )
 classifier
 
@@ -112,4 +112,41 @@ classifier
 #************************************************
 
 y_pred  = classifier.predict(X_test)
+
+
+#************************************************
+#Gráficar Accuracy y perdida de las epocas
+#************************************************
+history = classifier.fit(X_train, y_train, batch_size=(10), epochs=epocas)
+perdida, precision = classifier.evaluate(X_test)
+print("PERDIDA: ", perdida)
+print("PRESICIÓN: ", precision)
+
+historial_dict = history.history
+historial_dict.keys()
+
+
+# Variables para las gráficas
+acc = historial_dict['accuracy']
+val_acc = historial_dict.get('val_accuracy', [])  # Puede no existir en algunos casos
+perdida = historial_dict['loss']
+
+# Graficar la pérdida
+epocas = range(1, len(acc) + 1)
+plt.plot(epocas, perdida, 'go', label='Pérdida de entrenamiento')
+plt.title('Pérdida de entrenamiento y validación')
+plt.xlabel('Épocas')
+plt.ylabel('Pérdida')
+plt.legend()
+plt.show()
+
+
+plt.plot(epocas, acc, 'bo', label='Precisión de entrenamiento')
+plt.title('Precisión del entrenamiento y la validación')
+plt.xlabel('Epocas')
+plt.ylabel('Precisión')
+plt.legend(loc='lower right')
+
+plt.show()
+
 
