@@ -107,79 +107,9 @@ epocas = 2
 classifier.compile(optimizer='adam', loss="binary_crossentropy", metrics="accuracy" )
 classifier
 
-
-
-#************************************************
-#Gráficar Accuracy y perdida de las epocas
-#************************************************
-history = classifier.fit(X_train, y_train, batch_size=(10), epochs=epocas)
-perdida, precision = classifier.evaluate(X_test)
-print("PERDIDA: ", perdida)
-print("PRESICIÓN: ", precision)
-
-historial_dict = history.history
-historial_dict.keys()
-
-
-# Variables para las gráficas
-acc = historial_dict['accuracy']
-val_acc = historial_dict.get('val_accuracy', [])  # Puede no existir en algunos casos
-perdida = historial_dict['loss']
-
-# Graficar la pérdida
-epocas = range(1, len(acc) + 1)
-plt.plot(epocas, perdida, 'go', label='Pérdida de entrenamiento')
-plt.title('Pérdida de entrenamiento y validación')
-plt.xlabel('Épocas')
-plt.ylabel('Pérdida')
-plt.legend()
-plt.show()
-
-
-plt.plot(epocas, acc, 'bo', label='Precisión de entrenamiento')
-plt.title('Precisión del entrenamiento y la validación')
-plt.xlabel('Epocas')
-plt.ylabel('Precisión')
-plt.legend(loc='lower right')
-
-plt.show()
-
 #************************************************
 #Predicción
 #************************************************
 
 y_pred  = classifier.predict(X_test)
 
-#************************************************
-# Predicción de nuevos datos
-
-#************************************************
-
-
-X_predict = [600, 'Spain', 'Male', 40, 3, 60000, 2, 1, 1, 50000]
-
-# Convertir X_predict a DataFrame
-df_predict = pd.DataFrame([X_predict], columns=['CustomerId', 'Geography', 'Gender', 'Age', 'Tenure', 
-                   
-                                                'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary'])
-# Seleccionar las características de X_predict (eliminar la columna 'CustomerId' ya que no es relevante para la predicción)
-X_predict = df_predict.iloc[:, :].values  # Esto incluye todas las columnas excepto 'CustomerId'
-
-X_predict[:, 1] = labelencoder_X_1.fit_transform(X_predict[:, 1])
-X_predict[:, 2] = labelencoder_X_2.fit_transform(X_predict[:, 2])
-
-
-# Aplicar la transformación de OneHotEncoder para 'Geography' y 'Gender' (esto asegura que los datos tengan la misma forma que X_train)
-X_predict = transformer.transform(X_predict)
-X_predict = X_predict[:, 1:]
-# No eliminamos ninguna columna adicional ya que 'transformer' se encargará de eso
-
-# Escalar las características numéricas
-X_predict = sc_X.transform(X_predict)
-
-# Realizar la predicción
-y_pred_new = classifier.predict(X_predict)
-print("Predicción:", y_pred_new)
-
-y_pred_new = (y_pred_new > 0.5)
-print("Predicción:", y_pred_new)
