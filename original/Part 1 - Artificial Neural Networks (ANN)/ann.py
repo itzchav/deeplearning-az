@@ -64,7 +64,7 @@ sc_X = StandardScaler()
 X_train = sc_X.fit_transform(X_train)
 X_test = sc_X.transform(X_test)
 
-
+'''
 # Parte 2 - Construir la RNA
 
 # Importar Keras y librerías adicionales
@@ -154,3 +154,4 @@ grid_search = GridSearchCV(estimator = classifier,
 grid_search = grid_search.fit(X_train, y_train)
 best_parameters = grid_search.best_params_
 best_accuracy = grid_search.best_score_
+'''
